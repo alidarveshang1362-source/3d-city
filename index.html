@@ -1,238 +1,312 @@
+
 <!DOCTYPE html>
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>شهر من 3D</title>
+<title>شهرسازی سه‌بعدی</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#101827;font-family:Tahoma;color:white}
-#game{width:100vw;height:100dvh;display:block}
-#panel{position:fixed;top:10px;right:10px;left:10px;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.info{background:#172438eF;padding:11px 15px;border:1px solid #ffffff22;border-radius:14px;font-size:13px}
-#money{color:#ffe36c;font-weight:bold}
-#menu{position:fixed;bottom:12px;left:8px;right:8px;z-index:5;background:#142238ed;border:1px solid #ffffff22;border-radius:18px;padding:10px;display:flex;gap:7px;overflow-x:auto}
-.item{min-width:76px;border:1px solid #ffffff25;background:#263953;color:white;border-radius:12px;padding:9px 5px;font-size:12px}
-.item.active{background:#087d9e;border:2px solid #61e5ff}
-.item span{display:block;font-size:24px;margin-bottom:5px}
-#help{position:fixed;top:65px;left:10px;z-index:5;background:#172438c9;padding:8px 11px;border-radius:10px;font-size:11px}
-button{font-family:Tahoma;cursor:pointer}
+body{margin:0;overflow:hidden;font-family:Tahoma;background:#9ac9e8;color:white}
+canvas{display:block}
+#top{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;z-index:5;gap:8px}
+.panel{background:#17283beF;border:1px solid #ffffff35;border-radius:14px;padding:12px;font-size:13px;box-shadow:0 4px 18px #14243855}
+#money{color:#ffe27a;font-weight:bold}
+#menu{position:fixed;bottom:12px;left:8px;right:8px;display:flex;gap:8px;overflow-x:auto;padding:10px;background:#14263aee;border-radius:18px;z-index:5}
+.item{min-width:76px;background:#2b4058;border:1px solid #ffffff30;color:white;border-radius:12px;padding:9px 5px;font-family:Tahoma}
+.item.active{background:#087f9d;border:2px solid #75e8ff}
+.item span{display:block;font-size:25px;margin-bottom:5px}
+#tip{position:fixed;top:65px;left:12px;background:#17283bd9;padding:9px;border-radius:10px;font-size:11px;z-index:5}
+#tools{position:fixed;right:12px;top:65px;display:grid;gap:7px;z-index:5}
+.tool{background:#17283bee;color:white;border:1px solid #ffffff35;padding:10px;border-radius:11px}
 </style>
 </head>
 <body>
-<canvas id="game"></canvas>
-<div id="panel">
- <div class="info">🏙️ شهر من</div>
- <div class="info">💰 <span id="money">5000</span> سکه</div>
+<div id="top">
+ <div class="panel">🏙️ شهر من</div>
+ <div class="panel">💰 <span id="money">10000</span></div>
 </div>
-<div id="help">برای ساخت، روی زمین لمس کن؛ برای چرخاندن دوربین بکش.</div>
+<div id="tip">برای ساخت روی زمین بزن؛ برای چرخش دوربین انگشتت را بکش.</div>
+<div id="tools">
+ <button class="tool" id="rotate">🔄 چرخش</button>
+ <button class="tool" id="zoomIn">＋ زوم</button>
+ <button class="tool" id="zoomOut">－ زوم</button>
+</div>
 <div id="menu">
- <button class="item active" data-type="house"><span>🏠</span>خانه<br>۵۰۰</button>
- <button class="item" data-type="tower"><span>🏢</span>برج<br>۱۲۰۰</button>
- <button class="item" data-type="school"><span>🏫</span>مدرسه<br>۹۰۰</button>
- <button class="item" data-type="hospital"><span>🏥</span>بیمارستان<br>۱۱۰۰</button>
- <button class="item" data-type="shop"><span>🏬</span>فروشگاه<br>۸۰۰</button>
- <button class="item" data-type="park"><span>🌳</span>پارک<br>۳۰۰</button>
- <button class="item" data-type="road"><span>🛣️</span>جاده<br>۱۰۰</button>
+ <button class="item active" data-type="house"><span>🏠</span>خانه ۵۰۰</button>
+ <button class="item" data-type="tower"><span>🏢</span>برج ۱۵۰۰</button>
+ <button class="item" data-type="school"><span>🏫</span>مدرسه ۱۰۰۰</button>
+ <button class="item" data-type="hospital"><span>🏥</span>بیمارستان ۱۳۰۰</button>
+ <button class="item" data-type="shop"><span>🏬</span>فروشگاه ۹۰۰</button>
+ <button class="item" data-type="park"><span>🌳</span>پارک ۴۰۰</button>
+ <button class="item" data-type="road"><span>🛣️</span>خیابان ۱۰۰</button>
 </div>
 
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-
-const canvas=document.querySelector('#game');
-const renderer=new THREE.WebGLRenderer({
- canvas,antialias:true,alpha:false,powerPreference:'high-performance'
-});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-renderer.setSize(innerWidth,innerHeight);
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.shadowMap.enabled=false;
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x9bd5ec);
-scene.fog=new THREE.Fog(0x9bd5ec,35,85);
+scene.background=new THREE.Color(0x9bc9e8);
+scene.fog=new THREE.Fog(0x9bc9e8,65,125);
 
-const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.1,150);
-let angle=Math.PI/4, distance=35, height=27;
-function cameraUpdate(){
- camera.position.set(Math.cos(angle)*distance,height,Math.sin(angle)*distance);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,180);
+let angle=Math.PI/4, distance=47, height=37;
+function updateCamera(){
+ camera.position.set(Math.sin(angle)*distance,height,Math.cos(angle)*distance);
  camera.lookAt(0,0,0);
 }
-cameraUpdate();
+updateCamera();
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x66805d,2));
-const sun=new THREE.DirectionalLight(0xffffff,2.1);
-sun.position.set(-15,30,15);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xd9efff,0x657b56,2));
+const sun=new THREE.DirectionalLight(0xfff0d2,2.7);
+sun.position.set(-25,45,25);
+sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left=-35;
+sun.shadow.camera.right=35;
+sun.shadow.camera.top=35;
+sun.shadow.camera.bottom=-35;
+sun.shadow.bias=-.0004;
 scene.add(sun);
 
-const mats={};
-function mat(name,color,rough=.85){
- if(!mats[name])mats[name]=new THREE.MeshLambertMaterial({color});
- return mats[name];
-}
-const grass=mat('grass',0x65a957);
-const white=mat('white',0xf4eee1);
-const dark=mat('dark',0x34465b);
-const glass=mat('glass',0x65c6e8);
-const roof=mat('roof',0xc65b43);
-const roadMat=mat('road',0x424b58);
-const lineMat=mat('line',0xf5d879);
-const trunk=mat('trunk',0x79502e);
-const leaf=mat('leaf',0x23834b);
+const material=(color,roughness=.85,metalness=0)=>
+ new THREE.MeshStandardMaterial({color,roughness,metalness});
 
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(100,100),grass);
+const grass=material(0x65a85b);
+const asphalt=material(0x343e4b);
+const pavement=material(0xb7b8ad);
+const white=material(0xf5eee0);
+const glass=material(0x78c7e7,.25,.15);
+const darkGlass=material(0x31536d,.3);
+const red=material(0xc95c49);
+const yellow=material(0xf0c66d);
+const wood=material(0x805536);
+const leaves=material(0x287d46);
+const lightMat=material(0xffdf8c,.35);
+const line=material(0xf4d77a);
+
+const box=new THREE.BoxGeometry(1,1,1);
+const sphere=new THREE.SphereGeometry(.5,10,8);
+const cone=new THREE.ConeGeometry(.7,1,6);
+
+function cube(parent,x,y,z,sx,sy,sz,mat,shadow=true){
+ const m=new THREE.Mesh(box,mat);
+ m.position.set(x,y,z);
+ m.scale.set(sx,sy,sz);
+ m.castShadow=shadow;
+ m.receiveShadow=true;
+ parent.add(m);
+ return m;
+}
+function addTree(parent,x,z,size=1){
+ cube(parent,x,.65*size,z,.18*size,1.3*size,.18*size,wood);
+ const a=new THREE.Mesh(sphere,leaves);
+ a.position.set(x,1.55*size,z);
+ a.scale.set(size,size*1.15,size);
+ a.castShadow=true;
+ parent.add(a);
+}
+function addWindow(parent,x,y,z,w=.32,h=.42){
+ cube(parent,x,y,z,w,h,.055,darkGlass,false);
+ cube(parent,x,y,z+.035,w*.86,h*.86,.02,glass,false);
+}
+function addLamp(parent,x,z){
+ cube(parent,x,1.4,z,.09,2.8,.09,wood);
+ const l=new THREE.Mesh(sphere,lightMat);
+ l.position.set(x,2.9,z);
+ l.scale.set(.22,.22,.22);
+ parent.add(l);
+}
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(130,130),grass);
 ground.rotation.x=-Math.PI/2;
-ground.position.y=-.08;
+ground.position.y=-.12;
+ground.receiveShadow=true;
 scene.add(ground);
 
-const grid=new THREE.GridHelper(50,25,0x477b45,0x78ad65);
+const grid=new THREE.GridHelper(64,32,0x477e49,0x80b675);
 grid.position.y=.01;
 scene.add(grid);
 
-const buildings=new THREE.Group();
-scene.add(buildings);
+const city=new THREE.Group();
+scene.add(city);
 
-const geo={
- box:new THREE.BoxGeometry(1,1,1),
- cone:new THREE.ConeGeometry(.7,1,5),
- cylinder:new THREE.CylinderGeometry(.12,.15,1,7),
- sphere:new THREE.SphereGeometry(.55,8,6)
-};
+function makeRoad(g){
+ cube(g,0,.04,0,4,.12,4,asphalt);
+ cube(g,0,.108,0,.12,.015,3.4,line,false);
+ for(let z=-1.3;z<=1.3;z+=.8){
+  cube(g,-1.8,.115,z,.12,.02,.35,white,false);
+  cube(g,1.8,.115,z,.12,.02,.35,white,false);
+ }
+}
+function makePark(g){
+ cube(g,0,.12,0,3.7,.2,3.7,material(0x8bc66d));
+ addTree(g,-1,-.9,.85);
+ addTree(g,1,.8,.9);
+ addTree(g,.9,-1,.75);
+ const bench=material(0x87542f);
+ cube(g,0,.35,.7,1,.12,.3,bench);
+ cube(g,0,.2,.7,1,.15,.12,wood);
+}
+function makeHouse(g){
+ const walls=material(0xf1c985);
+ cube(g,0,1.35,0,2.5,2.7,2.4,walls);
+ const r=new THREE.Mesh(cone,red);
+ r.position.set(0,3.2,0);
+ r.scale.set(2,1.2,2);
+ r.castShadow=true;
+ g.add(r);
+ for(let x of [-.7,.7]){
+  addWindow(g,x,1.9,1.22,.45,.55);
+  addWindow(g,x,1.9,-1.22,.45,.55);
+ }
+ cube(g,0,.65,1.23,.48,1.3,.08,wood);
+ cube(g,0,3.85,0,.35,.45,.35,material(0x777777));
+}
+function makeTower(g){
+ const floors=7;
+ cube(g,0,3.4,0,2.6,6.8,2.6,material(0xc9d7df));
+ for(let y=.6;y<6.5;y+=.8){
+  for(let x of [-.85,0,.85]){
+   addWindow(g,x,y,1.32,.55,.48);
+   addWindow(g,x,y,-1.32,.55,.48);
+  }
+  cube(g,0,y-.35,0,2.72,.08,2.72,white);
+ }
+ cube(g,0,6.95,0,2.9,.2,2.9,red);
+}
+function makeSchool(g){
+ cube(g,0,1.3,0,3.1,2.6,2.7,material(0xe8d9ae));
+ for(let x of [-1,0,1]){
+  addWindow(g,x,1.7,1.38,.55,.6);
+ }
+ cube(g,0,.7,1.4,.8,1.4,.12,red);
+ cube(g,0,2.8,0,3.25,.2,2.85,red);
+}
+function makeHospital(g){
+ cube(g,0,1.6,0,3.2,3.2,2.8,white);
+ for(let x of [-1,0,1]){
+  addWindow(g,x,2,1.42,.5,.65);
+ }
+ cube(g,0,3.4,0,3.35,.18,2.95,white);
+ cube(g,0,3.9,0,1.2,.65,.18,red);
+ cube(g,0,3.9,0,.18,.65,1.2,red);
+}
+function makeShop(g){
+ cube(g,0,1.2,0,3,2.4,2.7,yellow);
+ cube(g,0,.85,1.4,2.3,.85,.12,glass);
+ cube(g,0,2.5,0,3.2,.25,2.9,red);
+ cube(g,0,2.9,0,1.4,.35,.12,white);
+}
+const prices={house:500,tower:1500,school:1000,hospital:1300,shop:900,park:400,road:100};
+let money=10000,selected='house';
+const occupied=new Set();
 
-function cube(parent,x,y,z,sx,sy,sz,material){
- const m=new THREE.Mesh(geo.box,material);
- m.position.set(x,y,z);m.scale.set(sx,sy,sz);
- parent.add(m);return m;
-}
-function tree(parent,x,z,size=1){
- cube(parent,x,.55*size,z,.16*size,1.1*size,.16*size,trunk);
- const top=new THREE.Mesh(geo.sphere,leaf);
- top.position.set(x,1.35*size,z);
- top.scale.set(size,size,size);
- parent.add(top);
-}
-function windowBox(parent,x,y,z,w=.23,h=.32){
- cube(parent,x,y,z,w,h,.045,glass);
-}
 function makeBuilding(type,x,z){
  const g=new THREE.Group();
- const baseY=0;
- const colors={
- house:0xf3c77d,tower:0xcbd9e5,school:0xe9dfbd,
- hospital:0xf1f3f6,shop:0xe5a6a0
- };
- if(type==='road'){
-  cube(g,0,.03,0,2,.08,2,roadMat);
-  cube(g,0,.08,0,.12,.02,1.7,lineMat);
- }else if(type==='park'){
-  cube(g,0,.08,0,1.9,.12,1.9,mat('park',0x85c96c));
-  tree(g,-.45,0,.8);tree(g,.45,.4,.75);tree(g,.35,-.5,.65);
- }else{
-  let h=type==='tower'?5:type==='hospital'?2.6:type==='school'?2.2:1.8;
-  let w=type==='tower'?1.65:1.55;
-  cube(g,0,h/2,0,w,h,w,mat(type,colors[type]));
-  cube(g,0,h+.12,0,w+.12,.2,w+.12,white);
-  if(type==='house'){
-   const r=new THREE.Mesh(geo.cone,roof);
-   r.position.y=h+.65;r.scale.set(1.35,1,1.35);g.add(r);
-   cube(g,0,.48,.79,.38,.95,.08,dark);
-  }else{
-   for(let y=.55;y<h-.25;y+=.65){
-    for(let xx=-.48;xx<=.5;xx+=.48){
-     windowBox(g,xx,y,w/2+.03);
-     windowBox(g,xx,y,-w/2-.03);
-    }
-   }
-   if(type==='hospital'){
-    cube(g,0,h+.45,0,.75,.12,.16,mat('red',0xe54b50));
-    cube(g,0,h+.45,0,.16,.12,.75,mat('red',0xe54b50));
-   }
-   if(type==='school'){
-    cube(g,0,.55,.82,.55,1,.08,roof);
-   }
-   if(type==='shop'){
-    cube(g,0,.7,.82,1.05,.55,.08,glass);
-   }
-  }
- }
- // سایه مصنوعی سبک
  const shadow=new THREE.Mesh(
-  new THREE.CircleGeometry(1.15,12),
-  new THREE.MeshBasicMaterial({color:0x243b2a,transparent:true,opacity:.18})
+  new THREE.CircleGeometry(2.1,16),
+  new THREE.MeshBasicMaterial({color:0x253b2a,transparent:true,opacity:.18})
  );
  shadow.rotation.x=-Math.PI/2;
  shadow.position.y=.015;
- shadow.scale.set(1,.75,1);
+ shadow.scale.set(1,.8,1);
  g.add(shadow);
- g.position.set(x,baseY,z);
- buildings.add(g);
- return g;
+
+ if(type==='road')makeRoad(g);
+ if(type==='park')makePark(g);
+ if(type==='house')makeHouse(g);
+ if(type==='tower')makeTower(g);
+ if(type==='school')makeSchool(g);
+ if(type==='hospital')makeHospital(g);
+ if(type==='shop')makeShop(g);
+
+ if(type!=='road'&&type!=='park'){
+  addLamp(g,-1.7,1.6);
+  addLamp(g,1.7,-1.6);
+ }
+ g.position.set(x,0,z);
+ city.add(g);
 }
 
-let money=5000;
-let selected='house';
-const prices={house:500,tower:1200,school:900,hospital:1100,shop:800,park:300,road:100};
-const occupied=new Set();
-function key(x,z){return x+','+z}
-document.querySelectorAll('.item').forEach(btn=>{
- btn.addEventListener('click',()=>{
-  document.querySelectorAll('.item').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');selected=btn.dataset.type;
- });
+document.querySelectorAll('.item').forEach(b=>{
+ b.onclick=()=>{
+  document.querySelectorAll('.item').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  selected=b.dataset.type;
+ };
 });
 
 const raycaster=new THREE.Raycaster();
 const pointer=new THREE.Vector2();
-const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const hit=new THREE.Vector3();
-let dragging=false,lastX=0,lastY=0,moved=false;
+let down=false,moved=false,lastX=0,lastY=0;
 
-function place(e){
- const r=canvas.getBoundingClientRect();
- pointer.x=((e.clientX-r.left)/r.width)*2-1;
- pointer.y=-((e.clientY-r.top)/r.height)*2+1;
- raycaster.setFromCamera(pointer,camera);
- if(!raycaster.ray.intersectPlane(groundPlane,hit))return;
- const x=Math.round(hit.x/2)*2,z=Math.round(hit.z/2)*2;
- const k=key(x,z);
- if(Math.abs(x)>22||Math.abs(z)>22||occupied.has(k))return;
- const price=prices[selected];
- if(money<price){alert('سکه کافی نداری!');return;}
- money-=price;
- document.querySelector('#money').textContent=money;
- occupied.add(k);
- makeBuilding(selected,x,z);
-}
-
-canvas.addEventListener('pointerdown',e=>{
- dragging=true;moved=false;lastX=e.clientX;lastY=e.clientY;
- canvas.setPointerCapture(e.pointerId);
+renderer.domElement.addEventListener('pointerdown',e=>{
+ down=true;moved=false;lastX=e.clientX;lastY=e.clientY;
+ renderer.domElement.setPointerCapture(e.pointerId);
 });
-canvas.addEventListener('pointermove',e=>{
- if(!dragging)return;
+renderer.domElement.addEventListener('pointermove',e=>{
+ if(!down)return;
  const dx=e.clientX-lastX,dy=e.clientY-lastY;
  if(Math.abs(dx)+Math.abs(dy)>3)moved=true;
  if(moved){
   angle-=dx*.006;
-  height=Math.max(12,Math.min(42,height+dy*.08));
-  cameraUpdate();
+  height=Math.max(13,Math.min(65,height+dy*.08));
+  updateCamera();
  }
  lastX=e.clientX;lastY=e.clientY;
 });
-canvas.addEventListener('pointerup',e=>{
- if(dragging&&!moved)place(e);
- dragging=false;
+renderer.domElement.addEventListener('pointerup',e=>{
+ if(down&&!moved)place(e);
+ down=false;
 });
-canvas.addEventListener('wheel',e=>{
- distance=Math.max(18,Math.min(55,distance+e.deltaY*.025));
- cameraUpdate();
+function place(e){
+ const r=renderer.domElement.getBoundingClientRect();
+ pointer.x=(e.clientX-r.left)/r.width*2-1;
+ pointer.y=-(e.clientY-r.top)/r.height*2+1;
+ raycaster.setFromCamera(pointer,camera);
+ if(!raycaster.ray.intersectPlane(plane,hit))return;
+ const x=Math.round(hit.x/4)*4,z=Math.round(hit.z/4)*4;
+ const k=x+','+z;
+ if(Math.abs(x)>28||Math.abs(z)>28||occupied.has(k))return;
+ if(money<prices[selected])return;
+ money-=prices[selected];
+ document.querySelector('#money').textContent=money.toLocaleString('fa-IR');
+ occupied.add(k);
+ makeBuilding(selected,x,z);
+}
+document.querySelector('#zoomIn').onclick=()=>{
+ distance=Math.max(19,distance-4);updateCamera();
+};
+document.querySelector('#zoomOut').onclick=()=>{
+ distance=Math.min(85,distance+4);updateCamera();
+};
+document.querySelector('#rotate').onclick=()=>{
+ angle+=Math.PI/4;updateCamera();
+};
+renderer.domElement.addEventListener('wheel',e=>{
+ distance=Math.max(19,Math.min(85,distance+e.deltaY*.035));
+ updateCamera();
 },{passive:true});
 
 function resize(){
  camera.aspect=innerWidth/innerHeight;
  camera.updateProjectionMatrix();
- renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
  renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 }
 addEventListener('resize',resize);
 
